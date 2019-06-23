@@ -1,5 +1,5 @@
 # Solutions-for-Bandit
-The solutions for the wargame Bandit at OverTheWire(overthewire.org/bandit).
+The solutions for the wargame Bandit at [OverTheWire](overthewire.org/bandit).
 
 0. LEVEL 0: Connect with the web server with the given login credentials using ssh.
 

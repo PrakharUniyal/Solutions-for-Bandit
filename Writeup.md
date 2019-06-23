@@ -1,4 +1,4 @@
-#OverTheWire: Bandits
+<h1>OverTheWire: Bandits</h1>
 
 ##Solutions by Prakhar Uniyal
 

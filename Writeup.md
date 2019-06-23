@@ -1,6 +1,6 @@
 <h1>OverTheWire: Bandits</h1>
 
-##Solutions by Prakhar Uniyal
+<h6>Solutions by Prakhar Uniyal</h6>
 
 1. LEVEL 0: Connect with the web server with the given login credentials using ssh.
 

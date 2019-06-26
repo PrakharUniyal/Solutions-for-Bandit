@@ -133,3 +133,196 @@ The password is KEY
 ```
 
 ---
+**LEVEL12->LEVEL13:** The file is a hexdump and has been compressed many times. First copy the file in a directory where you have permission to work on it. Then use the reverse hexdump command "xxd -r". Then check the type of compressed file and keep decompressing it by the appropriate decompressing command for its file type. The final file will be an ASCII Text file called data8.bin and will contain the KEY.
+
+```
+mkdir /tmp/userx
+cp data.txt /tmp/userx
+cd /tmp/userx
+xxd -r data.txt > x.txt
+file x.txt
+x.txt: gzip compressed data, was "data2.bin", last modified: Tue Oct 16 12:00:23 2018, max compression, from Unix
+zcat x.txt > data_zcat
+file data_zcat
+data_zcat: bzip2 compressed data, block size = 900k
+bzip2 -d data_zcat
+file data z_cat.out
+data_zcat.out: gzip compressed data, was "data4.bin", from Unix, last modified: Tue Oct 16 12:00:46 2018, max compression
+zcat data_zcat.out > data_zcat_2
+file data_zcat_2
+data_zcat_2: POSIX tar archive (GNU)
+tar xvf data_zcat_2
+data5.bin
+file data5.bin
+data5.bin: POSIX tar archive (GNU)
+tar xvf data5.bin
+data6.bin
+file data6.bin
+data6.bin: bzip2 compressed data, block size = 900k
+bzip2 -d data6.bin
+bzip2: Can't guess original name for data6.bin -- using data6.bin.out
+file data6.bin.out
+data6.bin.out: POSIX tar archive (GNU)
+tar xvf data6.bin.out
+data8.bin
+file data8.bin
+data8.bin: gzip compressed data, was "data9.bin", from Unix, last modified: Tue Oct 16 12:01:21 2018, max compression
+zcat data8.bin > data8_zcat
+file data8_zcat
+data8_zcat: ASCII text
+cat data8_zcat
+The password is KEY
+```
+
+---
+**LEVEL13->LEVEL14:** There is an ssh key. Use it to login as bandit14 in the localhost. There the file containing the KEY is /etc/bandit_pass/bandit14.
+
+```
+bandit13@bandit:~$ ls
+sshkey.private
+ssh bandit14@localhost -i sshkey.private
+cd /etc/bandit_pass
+strings bandit14
+KEY
+```
+
+---
+**LEVEL14->LEVEL15:** Connect to localhost at port 30000 via nc command. Input the KEY from the previous level to retrive this level's KEY.
+
+```
+nc localhost 30000
+*previous_KEY*
+Correct!
+KEY
+```
+
+---
+**LEVEL15->LEVEL16:** Connect to localhost at potr 30001, this time using s_client command in the openssl command toolkit.
+
+```
+openssl s_client -connect localhost:30001
+...
+*previous_KEY*
+Correct!
+KEY
+
+
+closed
+```
+
+---
+**LEVEL16->LEVEL17:** One of the ports from 31000 to 32000 is open and contains the RSA private key to be used for the next level. Use nmap to find that port. Connect with it and copy the RSA key into a file on your machine and ensure that it can be accessed by ony you(Windows users might have trouble here). Use it in logging into the next level.
+
+```
+nmap localhost -p31000-32000
+Starting Nmap 7.40 ( https://nmap.org ) at 2019-06-25 21:22 CEST
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.00036s latency).
+Not shown: 999 closed ports
+PORT      STATE SERVICE
+31518/tcp open  unknown
+31790/tcp open  unknown
+
+Nmap done: 1 IP address (1 host up) scanned in 0.12 seconds
+openssl s_client -connect localhost:31790
+...
+*previous_KEY*
+...
+RSA private KEY
+```
+
+Terminate the connection and copy that RSA KEY into a file on your machine. Change its permission to 600 using chmod. Use it in the next level using the -i flag of ssh.
+
+---
+**LEVEL17->LEVEL18:** Simply find the difference in the new file as compared to the old file.
+
+```
+diff passwords.old passwords.new
+< hlbSBPAWJmL6WFDb06gpTx1pPButblOA
+---
+> KEY
+```
+
+---
+**LEVEL18->LEVEL19:** The .bashrc file of this level has been tweaked so as to log you out as soon as you try to login through ssh. However you can still run a single command each time you attempt to login through ssh.
+
+```
+ssh ... ls
+...
+Readme
+ByeBye!
+ssh ... cat Readme
+...
+KEY
+ByeBYe!
+```
+
+---
+**LEVEL19->LEVEL20:** The file in the home directory is a setuid binary file that temporarily escalates our privileges. Use it to access the otherwise prohibited file containing the key.
+
+```
+./bandit20-do
+Run a command as another user.
+  Example: /home/bandit19/bandit20-do id
+./bandit-do cat /etc/bandit_pass/bandit20
+KEY
+```
+
+---
+**LEVEL20->LEVEL21:** There is a setuid binary file that  makes a connection to localhost on the port we specify. It gives the next KEY only if it recieves the previous KEY as a message in this connection. Use the listening flag(-l) of newcat to start transmitting from this port. Connectto this port through another terminal using the file.
+
+```
+nc -l -p 12345 < /etc/bandit_pass/bandit20
+```
+```
+./suconnect 12345
+Read: GbKksEFF4yrVs6il55v6gwY5aVje5f0j
+Password matches, sending next password
+```
+```
+nc -l -p 12345 < /etc/bandit_pass/bandit20
+KEY
+```
+
+---
+**LEVEL21->LEVEL22:** There is a program that is running periodically through cron command. Open that program and you will find that it is transferring the KEY from its original prohibited file to a different one. Simply open that file.
+
+```
+cd /etc/cron.d/
+ls
+cronjob_bandit22 cronjob_bandit23 cronjob_bandit24
+strings ./*
+@reboot bandit22 /usr/bin/cronjob_bandit22.sh &> /dev/null
+* * * * * bandit22 /usr/bin/cronjob_bandit22.sh &> /dev/null
+@reboot bandit23 /usr/bin/cronjob_bandit23.sh  &> /dev/null
+* * * * * bandit23 /usr/bin/cronjob_bandit23.sh  &> /dev/null
+@reboot bandit24 /usr/bin/cronjob_bandit24.sh &> /dev/null
+* * * * * bandit24 /usr/bin/cronjob_bandit24.sh &> /dev/null
+cat /usr/bin/cronjob_bandit22.sh
+#!/bin/bash
+chmod 644 /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+cat /etc/bandit_pass/bandit22 > /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+cat /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+KEY
+```
+
+---
+**LEVEL22>LEVEL23** Similar to the previous level only this time the bash script puts the KEY in a file named identically as the MD5 hashcode of the username.
+
+```
+cat /usr/bin/cronjob_bandit23.sh
+#!/bin/bash
+
+myname=$(whoami)
+mytarget=$(echo I am user $myname | md5sum | cut -d ' ' -f 1)
+
+echo "Copying passwordfile /etc/bandit_pass/$myname to /tmp/$mytarget"
+
+cat /etc/bandit_pass/$myname > /tmp/$mytargeth
+echo I am user bandit23| md5sum | cut -d ' ' -f 1
+8ca319486bfbbc3663ea0fbe81326349
+cat 8ca319486bfbbc3663ea0fbe81326349
+KEY
+```
+
+---

